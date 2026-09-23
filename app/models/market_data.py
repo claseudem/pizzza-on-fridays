@@ -141,3 +141,35 @@ def get_candles(ticker: str, range_: str = "6mo", interval: str = "1d") -> list[
         return candles
 
     return _cached(f"candles:{ticker}:{range_}:{interval}", Config.CANDLE_CACHE_TTL, load)
+
+
+def get_earnings(ticker: str, limit: int = 12) -> list[dict[str, Any]]:
+    """Reportes de resultados (earnings) de ``ticker``, del más reciente al más
+    antiguo, con el EPS estimado por los analistas y el reportado. Incluye los
+    reportes futuros ya anunciados (con ``eps_reported`` a ``None``).
+
+    Se cachea una hora: estos datos solo cambian una vez por trimestre.
+    """
+
+    def load() -> list[dict[str, Any]]:
+        try:
+            table = yf.Ticker(ticker).get_earnings_dates(limit=limit)
+        except Exception:
+            return []
+        if table is None:
+            return []
+
+        earnings: list[dict[str, Any]] = []
+        for index, row in table.iterrows():
+            earnings.append(
+                {
+                    "time": int(index.timestamp()),
+                    "eps_estimate": _clean_float(row.get("EPS Estimate")),
+                    "eps_reported": _clean_float(row.get("Reported EPS")),
+                    "surprise_percent": _clean_float(row.get("Surprise(%)")),
+                }
+            )
+        earnings.sort(key=lambda e: e["time"], reverse=True)
+        return earnings
+
+    return _cached(f"earnings:{ticker}:{limit}", 60 * 60, load)

@@ -35,6 +35,7 @@ class App:
 APPS: tuple[App, ...] = (
     App(slug="graficas", name="Gráficas", icon="📈", endpoint="graficas.index", kind="watchlists"),
     App(slug="analisis-varianza", name="Análisis de Varianza", icon="🧮", endpoint="varianza.index", kind="blank"),
+    App(slug="analisis-uec", name="Análisis UEC", icon="☢️", endpoint="uec.index", kind="blank"),
 )
 
 

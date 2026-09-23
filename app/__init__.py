@@ -35,11 +35,13 @@ def register_blueprints(app: Flask) -> None:
     from app.controllers.api import bp as api_bp
     from app.controllers.graficas import bp as graficas_bp
     from app.controllers.home import bp as home_bp
+    from app.controllers.uec import bp as uec_bp
     from app.controllers.varianza import bp as varianza_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(graficas_bp)
     app.register_blueprint(varianza_bp)
+    app.register_blueprint(uec_bp)
     app.register_blueprint(api_bp)
 
 
