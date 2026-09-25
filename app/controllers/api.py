@@ -4,6 +4,7 @@ from __future__ import annotations
 from flask import Blueprint, Response, jsonify, request
 
 from app.models import analysis, market_data
+from app.models.email import EmailError, send_email
 from app.models.watchlists import get_watchlist
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -55,3 +56,26 @@ def volatility_chart():
 
     png_bytes = analysis.render_volatility_histograms(tickers, period)
     return Response(png_bytes, mimetype="image/png")
+
+
+@bp.post("/email/send")
+def send_email_route():
+    """Envía un email de prueba vía Resend.
+
+    Body JSON: {"to": "destino@ejemplo.com", "subject": "...", "html": "..."}
+    (``subject`` y ``html`` son opcionales, para probar rápido con solo ``to``).
+    """
+    data = request.get_json(silent=True) or {}
+    to = data.get("to")
+    if not to:
+        return jsonify({"error": "Indica el destinatario en 'to'"}), 400
+
+    subject = data.get("subject") or "Prueba de Market Dashboard"
+    html = data.get("html") or "<p>Este es un email de prueba enviado desde Market Dashboard.</p>"
+
+    try:
+        email_id = send_email(to, subject, html)
+    except EmailError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+    return jsonify({"id": email_id}), 200

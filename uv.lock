@@ -739,6 +739,7 @@ dependencies = [
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "python-dotenv" },
+    { name = "resend" },
     { name = "seaborn" },
     { name = "yfinance" },
 ]
@@ -754,6 +755,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.11.2" },
     { name = "pandas", specifier = ">=3.0.5" },
     { name = "python-dotenv", specifier = ">=1.2.3" },
+    { name = "resend", specifier = ">=2.47.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "yfinance", specifier = ">=1.7.0" },
 ]
@@ -1221,6 +1223,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ac/c3/e2a2b89f2d3e2179abd6d00ebd70bff6273f37fb3e0cc209f48b39d00cbf/requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed", size = 142856, upload-time = "2026-05-14T19:25:27.735Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0", size = 73075, upload-time = "2026-05-14T19:25:26.443Z" },
+]
+
+[[package]]
+name = "resend"
+version = "2.47.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/d7/12f9decf70586a3ff5c9ec315d6751e026f906f7395b78334e39cb2647c4/resend-2.47.0.tar.gz", hash = "sha256:c92900e1c45f6c77e09cbfb29467671b87a62ee21baf8959e60047f3667fb652", size = 61527, upload-time = "2026-09-18T14:58:34.84Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ac/a9/28c1e359a3d972931c2c586f11efc08066c2e1ca9de7701ef0fbe923d814/resend-2.47.0-py2.py3-none-any.whl", hash = "sha256:04369afdff1741bc21c83dc68effad3b1635057b2db0f9d70b6be611310c9aed", size = 93346, upload-time = "2026-09-18T14:58:33.096Z" },
 ]
 
 [[package]]

@@ -14,10 +14,12 @@ def _fake_quote(ticker):
     )
 
 
-def test_index_redirects_to_default_app(client):
-    response = client.get("/", follow_redirects=True)
+def test_index_renders_landing_page(client):
+    response = client.get("/")
     assert response.status_code == 200
-    assert f"/graficas/w/{WATCHLISTS[0].slug}" in response.request.path
+    assert b"Market Dashboard" in response.data
+    assert b'href="/graficas/"' in response.data
+    assert b'href="/analisis-varianza/"' in response.data
 
 
 def test_unknown_watchlist_is_404(client):
@@ -73,3 +75,30 @@ def test_api_volatility_chart_returns_png(client, monkeypatch):
     assert response.status_code == 200
     assert response.mimetype == "image/png"
     assert response.data == b"fake-png-bytes"
+
+
+def test_api_email_send_requires_to(client):
+    response = client.post("/api/email/send", json={})
+    assert response.status_code == 400
+
+
+def test_api_email_send_returns_id(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.controllers.api.send_email",
+        lambda to, subject, html: "email-123",
+    )
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 200
+    assert response.get_json() == {"id": "email-123"}
+
+
+def test_api_email_send_reports_provider_errors(client, monkeypatch):
+    from app.models.email import EmailError
+
+    def _raise(to, subject, html):
+        raise EmailError("Falta RESEND_API_KEY en el .env")
+
+    monkeypatch.setattr("app.controllers.api.send_email", _raise)
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 502
+    assert "error" in response.get_json()

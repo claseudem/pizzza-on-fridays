@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Market Dashboard · Mercados en vivo, sin ruido</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-body">
+  <div class="landing">
+    <div class="landing__glow landing__glow--a"></div>
+    <div class="landing__glow landing__glow--b"></div>
+
+    <header class="landing__nav">
+      <div class="landing__brand">
+        <span class="landing__logo">📈</span>
+        <span class="landing__brand-name">Market Dashboard</span>
+      </div>
+      <a class="landing__nav-cta" href="{{ url_for(graficas_app.endpoint) }}">Entrar al panel →</a>
+    </header>
+
+    <main>
+      <section class="landing__hero">
+        <p class="landing__kicker">Datos de Yahoo Finance · Gráficos de TradingView</p>
+        <h1 class="landing__title">
+          Sigue los mercados <span class="landing__title-accent">como un profesional</span>,
+          sin salir del navegador
+        </h1>
+        <p class="landing__subtitle">
+          Cotizaciones en vivo, watchlists a tu medida y análisis de volatilidad,
+          en un panel rápido, claro y gratuito.
+        </p>
+
+        <div class="landing__actions">
+          <a class="landing__btn landing__btn--primary" href="{{ url_for(graficas_app.endpoint) }}">
+            <span>{{ graficas_app.icon }}</span> Ver gráficas en vivo
+          </a>
+          <a class="landing__btn landing__btn--secondary" href="{{ url_for(varianza_app.endpoint) }}">
+            <span>{{ varianza_app.icon }}</span> Análisis de varianza
+          </a>
+        </div>
+
+        <div class="landing__mock" aria-hidden="true">
+          <div class="landing__mock-bar">
+            <span class="landing__mock-dot"></span>
+            <span class="landing__mock-dot"></span>
+            <span class="landing__mock-dot"></span>
+          </div>
+          <svg class="landing__mock-chart" viewBox="0 0 600 180" preserveAspectRatio="none">
+            <polyline class="landing__mock-line"
+              points="0,120 40,110 80,130 120,90 160,100 200,60 240,80 280,40 320,55
+                      360,30 400,50 440,20 480,45 520,25 560,15 600,35" />
+            <polygon class="landing__mock-area"
+              points="0,120 40,110 80,130 120,90 160,100 200,60 240,80 280,40 320,55
+                      360,30 400,50 440,20 480,45 520,25 560,15 600,35 600,180 0,180" />
+          </svg>
+        </div>
+      </section>
+
+      <section class="landing__features">
+        <article class="landing__card">
+          <span class="landing__card-icon">📈</span>
+          <h2>Gráficos en vivo</h2>
+          <p>
+            Precios en tiempo real dibujados con <strong>lightweight-charts</strong>,
+            la librería open-source de TradingView. De 1 día a todo el historial,
+            con un clic.
+          </p>
+        </article>
+        <article class="landing__card">
+          <span class="landing__card-icon">⭐</span>
+          <h2>Watchlists a medida</h2>
+          <p>
+            Organiza tus tickers favoritos en listas propias y cambia entre ellos
+            desde el sidebar, con precio y variación siempre a la vista.
+          </p>
+        </article>
+        <article class="landing__card">
+          <span class="landing__card-icon">🧮</span>
+          <h2>Análisis de volatilidad</h2>
+          <p>
+            Calcula la volatilidad mensual anualizada de uno o varios tickers y
+            visualízala en histogramas generados al instante.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="landing__footer">
+      <span>Hecho con Flask + lightweight-charts</span>
+    </footer>
+  </div>
+</body>
+</html>

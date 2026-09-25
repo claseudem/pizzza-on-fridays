@@ -1,13 +1,17 @@
-"""Controlador: raíz del sitio. Redirige a la app por defecto del sidebar."""
+"""Controlador: raíz del sitio. Landing page de bienvenida."""
 from __future__ import annotations
 
-from flask import Blueprint, redirect, url_for
+from flask import Blueprint, render_template
 
-from app.models.apps import default_app
+from app.models.apps import get_app
 
 bp = Blueprint("home", __name__)
 
 
 @bp.get("/")
 def index():
-    return redirect(url_for(default_app().endpoint))
+    return render_template(
+        "landing.html",
+        graficas_app=get_app("graficas"),
+        varianza_app=get_app("analisis-varianza"),
+    )

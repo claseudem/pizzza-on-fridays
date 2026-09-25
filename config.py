@@ -19,6 +19,11 @@ class Config:
     QUOTE_CACHE_TTL = int(os.environ.get("QUOTE_CACHE_TTL", "15"))
     CANDLE_CACHE_TTL = int(os.environ.get("CANDLE_CACHE_TTL", "60"))
 
+    # Envío de emails vía Resend (https://resend.com). En desarrollo, si no
+    # hay clave configurada, se usa el dominio de pruebas onboarding@resend.dev.
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+    RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+
 
 class ProductionConfig(Config):
     DEBUG = False
