@@ -20,7 +20,10 @@
 }
 
 .landing-nav__logo {
-  font-size: 1.3rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .landing-nav__cta {
@@ -66,6 +69,7 @@
 /* ---------- Hero ---------- */
 
 .landing-hero {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 3rem;
@@ -73,9 +77,24 @@
   max-width: 1100px;
   margin: 0 auto;
   flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.landing-hero__watermark {
+  position: absolute;
+  top: 50%;
+  right: -6rem;
+  width: 26rem;
+  height: 26rem;
+  transform: translateY(-50%);
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .landing-hero__text {
+  position: relative;
+  z-index: 1;
   flex: 1 1 420px;
 }
 
@@ -111,6 +130,8 @@
 }
 
 .landing-hero__preview {
+  position: relative;
+  z-index: 1;
   flex: 1 1 320px;
   max-width: 380px;
   background: var(--bg-panel);
@@ -285,6 +306,14 @@
   margin: 0 auto;
 }
 
+.landing-final-cta__logo {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
 .landing-final-cta p {
   color: var(--text-muted);
   margin: 0 0 1.5rem;
@@ -296,6 +325,14 @@
   border-top: 1px solid var(--border);
   padding: 1.5rem 1.75rem;
   text-align: center;
+}
+
+.landing-footer__logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.6rem;
 }
 
 .landing-footer p {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Market Dashboard — Sigue el mercado en tiempo real</title>
   <meta name="description" content="Consulta precios en vivo de tus acciones favoritas y entiende su riesgo con gráficos claros, sin necesidad de ser experto en finanzas.">
-  <link rel="icon" href="data:,">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
 </head>
@@ -13,7 +13,7 @@
 
   <header class="landing-nav">
     <div class="landing-nav__brand">
-      <span class="landing-nav__logo">📈</span>
+      <img class="landing-nav__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="Market Dashboard">
       <span>Market Dashboard</span>
     </div>
     <a class="landing-nav__cta" href="{{ url_for('graficas.index') }}">Entrar al panel</a>
@@ -21,6 +21,7 @@
 
   <main>
     <section class="landing-hero">
+      <img class="landing-hero__watermark" src="{{ url_for('static', filename='img/logo.png') }}" alt="" aria-hidden="true">
       <div class="landing-hero__text">
         <span class="landing-hero__badge">Datos en vivo · Yahoo Finance</span>
         <h1>Entiende el mercado, sin ser un experto</h1>
@@ -116,6 +117,7 @@
     </section>
 
     <section class="landing-final-cta">
+      <img class="landing-final-cta__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="Market Dashboard">
       <h2>Empieza a explorar el mercado ahora mismo</h2>
       <p>Es gratis y no necesitas crear una cuenta.</p>
       <a class="landing-btn landing-btn--primary" href="{{ url_for('graficas.index') }}">
@@ -125,6 +127,7 @@
   </main>
 
   <footer class="landing-footer">
+    <img class="landing-footer__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="Market Dashboard">
     <p>
       Los precios provienen de Yahoo Finance y pueden tener un ligero
       retraso. Esta herramienta es informativa y no constituye
