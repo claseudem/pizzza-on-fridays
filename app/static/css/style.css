@@ -447,6 +447,47 @@ a {
   border-radius: 4px;
 }
 
+/* ---------- Análisis UEC (quantstats) ---------- */
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.metric-tile__label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.metric-tile__value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-up {
+  color: var(--up);
+}
+
+.is-down {
+  color: var(--down);
+}
+
+.volatility-chart-wrap + .varianza-table-wrap {
+  margin-top: 0.75rem;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 760px) {

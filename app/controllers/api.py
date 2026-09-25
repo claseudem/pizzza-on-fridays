@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, jsonify, request
 
-from app.models import analysis, market_data
+from app.models import analysis, market_data, quant
 from app.models.watchlists import get_watchlist
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -11,6 +11,7 @@ bp = Blueprint("api", __name__, url_prefix="/api")
 ALLOWED_INTERVALS = {"1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"}
 ALLOWED_RANGES = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "max"}
 MAX_VOLATILITY_TICKERS = 6
+QUANT_PERIODS = {"1y", "2y", "5y", "max"}
 
 
 @bp.get("/quote/<ticker>")
@@ -55,3 +56,30 @@ def volatility_chart():
 
     png_bytes = analysis.render_volatility_histograms(tickers, period)
     return Response(png_bytes, mimetype="image/png")
+
+
+@bp.get("/quant/<ticker>/drawdown.png")
+def quant_drawdown(ticker: str):
+    """Serie de drawdown (PNG) calculada con quantstats. ?period=2y"""
+    period = request.args.get("period", "2y")
+    if period not in QUANT_PERIODS:
+        return jsonify({"error": "period inválido"}), 400
+    return Response(quant.render_drawdown_chart(ticker.upper(), period), mimetype="image/png")
+
+
+@bp.get("/quant/<ticker>/monthly-heatmap.png")
+def quant_monthly_heatmap(ticker: str):
+    """Heatmap (PNG) de retornos mensuales calculados con quantstats. ?period=2y"""
+    period = request.args.get("period", "2y")
+    if period not in QUANT_PERIODS:
+        return jsonify({"error": "period inválido"}), 400
+    return Response(quant.render_monthly_heatmap(ticker.upper(), period), mimetype="image/png")
+
+
+@bp.get("/quant/<ticker>/earnings.png")
+def quant_earnings(ticker: str):
+    """Comparación (PNG) de los últimos reportes de resultados. ?count=4"""
+    count = request.args.get("count", 4, type=int)
+    if count is None or not 2 <= count <= 8:
+        return jsonify({"error": "count debe estar entre 2 y 8"}), 400
+    return Response(quant.render_earnings_chart(ticker.upper(), count), mimetype="image/png")
