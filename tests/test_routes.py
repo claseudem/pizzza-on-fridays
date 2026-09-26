@@ -117,3 +117,30 @@ def test_api_quant_drawdown_returns_png(client, monkeypatch):
     response = client.get("/api/quant/uec/drawdown.png")
     assert response.status_code == 200
     assert response.mimetype == "image/png"
+
+
+def test_api_email_send_requires_to(client):
+    response = client.post("/api/email/send", json={})
+    assert response.status_code == 400
+
+
+def test_api_email_send_returns_id(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.controllers.api.send_email",
+        lambda to, subject, html: "email-123",
+    )
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 200
+    assert response.get_json() == {"id": "email-123"}
+
+
+def test_api_email_send_reports_provider_errors(client, monkeypatch):
+    from app.models.email import EmailError
+
+    def _raise(to, subject, html):
+        raise EmailError("Falta RESEND_API_KEY en el .env")
+
+    monkeypatch.setattr("app.controllers.api.send_email", _raise)
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 502
+    assert "error" in response.get_json()

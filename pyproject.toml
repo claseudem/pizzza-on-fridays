@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=3.0.5",
     "python-dotenv>=1.2.3",
     "quantstats>=0.0.81",
+    "resend>=2.47.0",
     "seaborn>=0.13.2",
     "yfinance>=1.7.0",
 ]
