@@ -24,6 +24,11 @@ class Config:
     RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
     RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
+    # Imágenes optimizadas vía Cloudinary (https://console.cloudinary.com).
+    # Formato: cloudinary://<api_key>:<api_secret>@<cloud_name>. Sin ella, la
+    # página de Informes usa las copias locales de static/img/informes.
+    CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "")
+
 
 class ProductionConfig(Config):
     DEBUG = False

@@ -5,14 +5,18 @@
  *   - stats:  histograma que se recalcula con su curva normal y puntos.
  *   - sports: pista de atletismo con corredores (la "carrera" del mercado).
  *
+ * Si la capa tiene un <video>, el canvas (data-fx-fallback) solo se anima
+ * cuando el navegador no puede reproducir ese video (p. ej. sin códec).
+ *
  * Solo se anima lo que está en pantalla, se pausa con la pestaña oculta y,
- * con prefers-reduced-motion, se dibuja un único fotograma estático.
+ * con prefers-reduced-motion, los videos quedan en pausa y el canvas dibuja
+ * un único fotograma estático.
  */
 (function () {
   "use strict";
 
-  const canvases = document.querySelectorAll("canvas[data-fx-scene]");
-  if (!canvases.length) return;
+  const layers = document.querySelectorAll(".fx-layer");
+  if (!layers.length) return;
 
   const COLORS = {
     accent: "41, 98, 255",
@@ -241,14 +245,11 @@
 
   const SCENES = { charts: chartsScene, stats: statsScene, sports: sportsScene };
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const VIDEO_TIMEOUT_MS = 8000;
 
-  const items = Array.from(canvases)
-    .map((canvas) => {
-      const factory = SCENES[canvas.dataset.fxScene];
-      if (!factory) return null;
-      return { canvas, ctx: canvas.getContext("2d"), draw: factory(), visible: true, w: 0, h: 0 };
-    })
-    .filter(Boolean);
+  const items = [];
+  let running = false;
+  let last = 0;
 
   function resize(item) {
     const rect = item.canvas.getBoundingClientRect();
@@ -258,12 +259,6 @@
     item.canvas.width = Math.max(1, Math.round(rect.width * dpr));
     item.canvas.height = Math.max(1, Math.round(rect.height * dpr));
     item.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  function render(item, dt) {
-    if (!item.w || !item.h) return;
-    item.ctx.clearRect(0, 0, item.w, item.h);
-    item.draw(item.ctx, item.w, item.h, dt);
   }
 
   // Fotograma estático: se avanza la escena unos segundos para que no quede vacía.
@@ -282,9 +277,6 @@
       if (reducedMotion) renderStatic(item);
     });
   });
-  items.forEach((item) => resizeObserver.observe(item.canvas));
-
-  if (reducedMotion) return;
 
   const visibilityObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -292,15 +284,73 @@
       if (item) item.visible = entry.isIntersecting;
     });
   });
-  items.forEach((item) => visibilityObserver.observe(item.canvas));
 
-  let last = performance.now();
   function frame(now) {
     // Con la pestaña oculta rAF se detiene; limitar dt evita saltos al volver.
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    items.forEach((item) => item.visible && render(item, dt));
+    items.forEach((item) => {
+      if (!item.visible || !item.w || !item.h) return;
+      item.ctx.clearRect(0, 0, item.w, item.h);
+      item.draw(item.ctx, item.w, item.h, dt);
+    });
     requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+
+  function startCanvas(canvas) {
+    const factory = SCENES[canvas.dataset.fxScene];
+    if (!factory || items.some((it) => it.canvas === canvas)) return;
+    items.push({ canvas, ctx: canvas.getContext("2d"), draw: factory(), visible: true, w: 0, h: 0 });
+    resizeObserver.observe(canvas);
+    if (reducedMotion) return;
+    visibilityObserver.observe(canvas);
+    if (!running) {
+      running = true;
+      last = performance.now();
+      requestAnimationFrame(frame);
+    }
+  }
+
+  // Si el video no se puede reproducir, se quita y la capa vuelve al canvas.
+  function watchVideo(layer, video, canvas) {
+    let settled = false;
+    const fallback = () => {
+      if (settled) return;
+      settled = true;
+      video.remove();
+      // Sin foto debajo, el canvas usa su overlay más ligero.
+      if (!layer.querySelector(".fx-layer__image")) layer.classList.remove("fx-layer--photo");
+      startCanvas(canvas);
+    };
+    const ok = () => {
+      settled = true;
+    };
+
+    const sources = Array.from(video.querySelectorAll("source"));
+    if (!sources.some((s) => video.canPlayType(s.type))) return fallback();
+
+    // Los errores de carga se emiten en cada <source>; el último agota las opciones.
+    if (sources.length) sources[sources.length - 1].addEventListener("error", fallback);
+    video.addEventListener("error", fallback);
+    if (video.readyState >= 2) ok();
+    else video.addEventListener("loadeddata", ok, { once: true });
+    setTimeout(() => video.readyState < 2 && fallback(), VIDEO_TIMEOUT_MS);
+
+    if (reducedMotion) {
+      // Sin movimiento: se deja el primer fotograma como imagen fija.
+      video.removeAttribute("autoplay");
+      video.pause();
+    } else {
+      // Algunos navegadores ignoran autoplay aunque el video esté silenciado.
+      const played = video.play();
+      if (played && played.catch) played.catch(() => {});
+    }
+  }
+
+  layers.forEach((layer) => {
+    const canvas = layer.querySelector("canvas[data-fx-scene]");
+    const video = layer.querySelector("video");
+    if (video && canvas) watchVideo(layer, video, canvas);
+    else if (canvas) startCanvas(canvas);
+  });
 })();

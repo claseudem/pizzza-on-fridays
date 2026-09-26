@@ -21,6 +21,7 @@ app/
     market_data.py            # Descarga + caché de precios/velas (yfinance)
     analysis.py                # Volatilidad mensual + histogramas (seaborn)
     report.py                   # Informe HTML de cotizaciones para enviar por email
+    media.py                     # Imágenes optimizadas vía Cloudinary (f_auto,q_auto)
     quant.py                    # Métricas quantstats, drawdown, heatmap y earnings
   controllers/            # CONTROLLER: blueprints de Flask
     home.py                   # "/" -> redirige a la app por defecto
@@ -118,6 +119,20 @@ en el navegador y `POST /api/email/send-assets-report` con
 
 Desde la app, el apartado **📨 Informes** (`/informes/`) permite elegir las
 watchlists, ver el informe con "Ver informe" y enviarlo con "Enviar por correo".
+
+### Imágenes con Cloudinary
+
+Los fondos de la página de Informes llevan una imagen servida desde
+[Cloudinary](https://cloudinary.com) con `f_auto,q_auto` (AVIF/WebP/JPEG y
+calidad elegidos por Cloudinary para cada navegador) y un `srcset` de 640,
+1280 y 1920 px. La lógica vive en `app/models/media.py`.
+
+1. Copia tu URL de API desde la [consola de Cloudinary](https://console.cloudinary.com/settings/api-keys)
+   y ponla en el `.env`: `CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>`.
+2. Sube las imágenes (una sola vez, o cada vez que cambies las de
+   `app/static/img/informes/`): `uv run flask --app run cloudinary-upload`.
+
+Sin `CLOUDINARY_URL`, la página usa las copias locales de `app/static/img/informes/`.
 
 ### Análisis UEC
 

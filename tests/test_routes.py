@@ -237,3 +237,22 @@ def test_informes_page_has_background_fx_layers(client):
             or f'data-fx-scene="{scene}"'.encode() in response.data
         )
     assert b'aria-hidden="true"' in response.data
+
+
+def test_informes_page_uses_local_images_without_cloudinary(client, monkeypatch):
+    from config import Config
+
+    monkeypatch.setattr(Config, "CLOUDINARY_URL", "")
+    response = client.get("/informes/")
+    assert b"/static/img/informes/charts.jpg" in response.data
+    assert b"res.cloudinary.com" not in response.data
+
+
+def test_informes_page_uses_cloudinary_images_when_configured(client, monkeypatch):
+    from config import Config
+
+    monkeypatch.setattr(Config, "CLOUDINARY_URL", "cloudinary://123456:secreto@demo")
+    response = client.get("/informes/")
+    assert b"https://res.cloudinary.com/demo/image/upload/" in response.data
+    assert b"f_auto" in response.data and b"q_auto" in response.data
+    assert b"srcset=" in response.data

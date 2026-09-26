@@ -22,6 +22,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
 
     register_blueprints(app)
     register_context_processors(app)
+    register_commands(app)
 
     return app
 
@@ -54,3 +55,19 @@ def register_context_processors(app: Flask) -> None:
     def inject_apps() -> dict:
         # Disponible en todas las plantillas (el sidebar se incluye en base.html).
         return {"apps": APPS}
+
+
+def register_commands(app: Flask) -> None:
+    import click
+
+    @app.cli.command("cloudinary-upload")
+    def cloudinary_upload() -> None:
+        """Sube a Cloudinary las imágenes de la página de Informes."""
+        from app.models.media import MediaError, upload_informes_images
+
+        try:
+            urls = upload_informes_images()
+        except MediaError as exc:
+            raise click.ClickException(str(exc)) from exc
+        for url in urls:
+            click.echo(url)

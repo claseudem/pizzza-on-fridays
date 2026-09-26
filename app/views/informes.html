@@ -3,16 +3,27 @@
 {% block title %}Informes · Market Dashboard{% endblock %}
 
 {#- Capa de fondo decorativa: va en position:absolute detrás del contenido,
-    así que no altera la maquetación. Usa un video en bucle si existe y, si no,
-    una animación en canvas (ver static/js/informes-fx.js). -#}
+    así que no altera la maquetación. De abajo arriba: imagen optimizada de
+    Cloudinary (se pinta al instante mientras carga el video y queda como
+    respaldo), canvas animado (solo si no hay video o no se puede reproducir)
+    y video en bucle (ver static/js/informes-fx.js). -#}
 {% macro fx_layer(scene) -%}
-<div class="fx-layer fx-layer--{{ scene }}{% if fx_videos[scene] %} fx-layer--video{% endif %}" aria-hidden="true">
-  {%- if fx_videos[scene] %}
+{%- set sources = fx_videos.get(scene) -%}
+{%- set image = fx_images.get(scene) -%}
+<div class="fx-layer fx-layer--{{ scene }}{% if sources or image %} fx-layer--photo{% endif %}" aria-hidden="true">
+  {%- if image %}
+  <img class="fx-layer__media fx-layer__image" src="{{ image.src }}"
+       {%- if image.srcset %} srcset="{{ image.srcset }}" sizes="(max-width: 720px) 100vw, 960px"{% endif %}
+       alt="" width="1280" height="720" decoding="async" loading="{{ 'eager' if scene == 'charts' else 'lazy' }}"
+       onerror="this.remove()">
+  {%- endif %}
+  <canvas class="fx-layer__media" data-fx-scene="{{ scene }}"{% if sources %} data-fx-fallback{% endif %}></canvas>
+  {%- if sources %}
   <video class="fx-layer__media" autoplay muted loop playsinline preload="auto" disablepictureinpicture>
-    <source src="{{ fx_videos[scene] }}" type="video/mp4">
+    {%- for url, mime in sources %}
+    <source src="{{ url }}" type="{{ mime }}">
+    {%- endfor %}
   </video>
-  {%- else %}
-  <canvas class="fx-layer__media" data-fx-scene="{{ scene }}"></canvas>
   {%- endif %}
 </div>
 {%- endmacro %}
