@@ -102,3 +102,76 @@ def test_api_email_send_reports_provider_errors(client, monkeypatch):
     response = client.post("/api/email/send", json={"to": "test@example.com"})
     assert response.status_code == 502
     assert "error" in response.get_json()
+
+
+def test_api_report_preview_returns_html(client, monkeypatch):
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    response = client.get("/api/report/preview?watchlists=overview")
+    assert response.status_code == 200
+    assert response.mimetype == "text/html"
+    assert b"Informe de mercado" in response.data
+
+
+def test_api_report_preview_unknown_watchlist_is_404(client):
+    assert client.get("/api/report/preview?watchlists=no-existe").status_code == 404
+
+
+def test_api_report_send_requires_to(client):
+    assert client.post("/api/report/send", json={}).status_code == 400
+
+
+def test_api_report_send_returns_id(client, monkeypatch):
+    calls = []
+
+    def _send(to, slugs):
+        calls.append((to, slugs))
+        return "email-456"
+
+    monkeypatch.setattr("app.controllers.api.report.send_market_report", _send)
+    response = client.post("/api/report/send", json={"to": "test@example.com", "watchlists": ["overview"]})
+    assert response.status_code == 200
+    assert response.get_json() == {"id": "email-456"}
+    assert calls == [("test@example.com", ["overview"])]
+
+
+def test_api_send_assets_report_requires_to(client):
+    assert client.post("/api/email/send-assets-report", json={}).status_code == 400
+
+
+def test_api_send_assets_report_unknown_watchlist_is_404(client):
+    response = client.post(
+        "/api/email/send-assets-report", json={"to": "test@example.com", "watchlists": ["no-existe"]}
+    )
+    assert response.status_code == 404
+
+
+def test_api_send_assets_report_sends_report_html(client, monkeypatch):
+    sent = {}
+
+    def _send(to, subject, html):
+        sent.update(to=to, subject=subject, html=html)
+        return "email-789"
+
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    monkeypatch.setattr("app.controllers.api.send_email", _send)
+    response = client.post(
+        "/api/email/send-assets-report", json={"to": "test@example.com", "watchlists": ["overview"]}
+    )
+    assert response.status_code == 200
+    assert response.get_json()["id"] == "email-789"
+    assert sent["to"] == "test@example.com"
+    assert sent["subject"].startswith("Informe de mercado")
+    assert "Resumen" in sent["html"]
+
+
+def test_api_send_assets_report_reports_provider_errors(client, monkeypatch):
+    from app.models.email import EmailError
+
+    def _raise(to, subject, html):
+        raise EmailError("Falta RESEND_API_KEY en el .env")
+
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    monkeypatch.setattr("app.controllers.api.send_email", _raise)
+    response = client.post("/api/email/send-assets-report", json={"to": "test@example.com"})
+    assert response.status_code == 502
+    assert "error" in response.get_json()

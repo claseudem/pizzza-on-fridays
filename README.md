@@ -20,6 +20,7 @@ app/
     watchlists.py            # Registro de watchlists de la app "Gráficas"
     market_data.py            # Descarga + caché de precios/velas (yfinance)
     analysis.py                # Volatilidad mensual + histogramas (seaborn)
+    report.py                   # Informe HTML de cotizaciones para enviar por email
   controllers/            # CONTROLLER: blueprints de Flask
     home.py                   # "/" -> redirige a la app por defecto
     graficas.py                # App "Gráficas": sidebar de watchlists + gráfico
@@ -92,6 +93,25 @@ muestra, por cada uno, un histograma con la distribución de esas
 volatilidades a lo largo del período elegido. El histograma se genera en
 el servidor con **seaborn/matplotlib** (`app/models/analysis.py`) y se
 sirve como PNG desde `GET /api/volatility-chart?tickers=AAPL,MSFT&period=5y`.
+
+### Informe de mercado por email
+
+`app/models/report.py` obtiene las cotizaciones de las watchlists, construye
+un informe HTML (resumen de subidas/bajadas, mayores movimientos y una tabla
+por watchlist) con la plantilla `app/views/emails/market_report.html` y lo
+envía vía Resend:
+
+```python
+from app.models.report import build_market_report, send_market_report
+
+report = build_market_report(["overview"])   # .subject y .html listos para enviar
+send_market_report("destino@ejemplo.com")      # todas las watchlists
+```
+
+También por HTTP: `GET /api/report/preview?watchlists=overview` para verlo
+en el navegador y `POST /api/email/send-assets-report` con
+`{"to": "destino@ejemplo.com", "watchlists": ["overview"]}` para enviarlo
+(`watchlists` es opcional).
 
 ## Puesta en marcha
 
