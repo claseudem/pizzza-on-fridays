@@ -225,3 +225,10 @@ def test_informes_page_has_preview_and_send_buttons(client):
     assert b'id="send-btn"' in response.data
     for watchlist in WATCHLISTS:
         assert f'value="{watchlist.slug}"'.encode() in response.data
+
+
+def test_informes_page_has_background_fx_layers(client):
+    response = client.get("/informes/")
+    for scene in ("charts", "stats", "sports"):
+        assert f'data-fx-scene="{scene}"'.encode() in response.data
+    assert b'aria-hidden="true"' in response.data

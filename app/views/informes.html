@@ -2,16 +2,33 @@
 
 {% block title %}Informes · Market Dashboard{% endblock %}
 
+{#- Capa de fondo decorativa: va en position:absolute detrás del contenido,
+    así que no altera la maquetación. Usa un video en bucle si existe y, si no,
+    una animación en canvas (ver static/js/informes-fx.js). -#}
+{% macro fx_layer(scene) -%}
+<div class="fx-layer fx-layer--{{ scene }}" aria-hidden="true">
+  {%- if fx_videos[scene] %}
+  <video class="fx-layer__media" autoplay muted loop playsinline preload="auto" disablepictureinpicture>
+    <source src="{{ fx_videos[scene] }}" type="video/mp4">
+  </video>
+  {%- else %}
+  <canvas class="fx-layer__media" data-fx-scene="{{ scene }}"></canvas>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
 {% block content %}
 <div class="varianza-page informes-page" id="informes-page">
-  <header class="varianza-header">
+  <header class="varianza-header fx-host fx-host--header">
+    {{ fx_layer("charts") }}
     <h1>Informe de activos</h1>
     <p class="varianza-header__hint">
       Elige las watchlists, revisa el informe y envíalo por correo.
     </p>
   </header>
 
-  <fieldset class="informes-watchlists">
+  <fieldset class="informes-watchlists fx-host">
+    {{ fx_layer("stats") }}
     <legend>Watchlists incluidas</legend>
     {% for watchlist in watchlists %}
     <label class="informes-watchlists__item">
@@ -21,7 +38,8 @@
     {% endfor %}
   </fieldset>
 
-  <div class="varianza-form informes-actions">
+  <div class="varianza-form informes-actions fx-host fx-host--row">
+    {{ fx_layer("sports") }}
     <button type="button" class="varianza-form__btn varianza-form__btn--secondary" id="preview-btn">
       Ver informe
     </button>
@@ -47,4 +65,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/informes.js') }}"></script>
+<script src="{{ url_for('static', filename='js/informes-fx.js') }}"></script>
 {% endblock %}
