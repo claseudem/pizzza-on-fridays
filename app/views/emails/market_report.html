@@ -1,0 +1,136 @@
+{#- Plantilla de email: solo tablas y estilos en línea, porque la mayoría de
+    clientes de correo ignoran <style> y el CSS moderno (flex, grid...). -#}
+{%- macro change_color(q) -%}
+  {%- if q.change_percent is none -%}#787b86{%- elif q.is_up -%}#089981{%- else -%}#f23645{%- endif -%}
+{%- endmacro -%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ subject }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f3fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#131722;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f3fa;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:8px;overflow:hidden;">
+
+          <tr>
+            <td style="background:#131722;padding:24px;color:#ffffff;">
+              <div style="font-size:20px;font-weight:700;">📈 Informe de mercado</div>
+              <div style="font-size:13px;color:#b2b5be;margin-top:4px;">
+                Generado el {{ generated_at.strftime('%d/%m/%Y a las %H:%M') }} UTC
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 24px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:12px;background:#f8f9fd;border-radius:6px;">
+                    <div style="font-size:22px;font-weight:700;">{{ summary.total }}</div>
+                    <div style="font-size:12px;color:#787b86;">Activos</div>
+                  </td>
+                  <td width="8"></td>
+                  <td align="center" style="padding:12px;background:#f8f9fd;border-radius:6px;">
+                    <div style="font-size:22px;font-weight:700;color:#089981;">{{ summary.up }}</div>
+                    <div style="font-size:12px;color:#787b86;">Al alza</div>
+                  </td>
+                  <td width="8"></td>
+                  <td align="center" style="padding:12px;background:#f8f9fd;border-radius:6px;">
+                    <div style="font-size:22px;font-weight:700;color:#f23645;">{{ summary.down }}</div>
+                    <div style="font-size:12px;color:#787b86;">A la baja</div>
+                  </td>
+                </tr>
+              </table>
+              {% if summary.unavailable %}
+              <div style="font-size:12px;color:#787b86;margin-top:8px;">
+                {{ summary.unavailable }} activo(s) sin datos disponibles.
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% if gainers or losers %}
+          <tr>
+            <td style="padding:12px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr valign="top">
+                  <td width="50%" style="padding-right:8px;">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">🚀 Mayores subidas</div>
+                    {% for row in gainers %}
+                    <div style="font-size:13px;padding:4px 0;border-bottom:1px solid #f0f3fa;">
+                      {{ row.symbol.display_name }}
+                      <span style="float:right;color:#089981;font-weight:600;">{{ row.quote.change_percent | change('%') }}</span>
+                    </div>
+                    {% else %}
+                    <div style="font-size:13px;color:#787b86;">—</div>
+                    {% endfor %}
+                  </td>
+                  <td width="50%" style="padding-left:8px;">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">📉 Mayores caídas</div>
+                    {% for row in losers %}
+                    <div style="font-size:13px;padding:4px 0;border-bottom:1px solid #f0f3fa;">
+                      {{ row.symbol.display_name }}
+                      <span style="float:right;color:#f23645;font-weight:600;">{{ row.quote.change_percent | change('%') }}</span>
+                    </div>
+                    {% else %}
+                    <div style="font-size:13px;color:#787b86;">—</div>
+                    {% endfor %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {% for section in sections %}
+          <tr>
+            <td style="padding:16px 24px 4px;">
+              <div style="font-size:15px;font-weight:700;margin-bottom:8px;">
+                {{ section.watchlist.icon }} {{ section.watchlist.name }}
+              </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;border-collapse:collapse;">
+                <tr style="color:#787b86;text-align:left;">
+                  <th style="padding:6px 4px;border-bottom:1px solid #e0e3eb;font-weight:600;">Activo</th>
+                  <th style="padding:6px 4px;border-bottom:1px solid #e0e3eb;font-weight:600;text-align:right;">Precio</th>
+                  <th style="padding:6px 4px;border-bottom:1px solid #e0e3eb;font-weight:600;text-align:right;">Cambio</th>
+                  <th style="padding:6px 4px;border-bottom:1px solid #e0e3eb;font-weight:600;text-align:right;">%</th>
+                </tr>
+                {% for row in section.rows %}
+                <tr>
+                  <td style="padding:6px 4px;border-bottom:1px solid #f0f3fa;">
+                    <div style="font-weight:600;">{{ row.symbol.display_name }}</div>
+                    <div style="font-size:11px;color:#787b86;">{{ row.symbol.ticker }}</div>
+                  </td>
+                  <td style="padding:6px 4px;border-bottom:1px solid #f0f3fa;text-align:right;white-space:nowrap;">
+                    {{ row.quote.price | price }}{% if row.quote.currency and row.quote.price is not none %} <span style="font-size:11px;color:#787b86;">{{ row.quote.currency }}</span>{% endif %}
+                  </td>
+                  <td style="padding:6px 4px;border-bottom:1px solid #f0f3fa;text-align:right;white-space:nowrap;color:{{ change_color(row.quote) }};">
+                    {{ row.quote.change | change }}
+                  </td>
+                  <td style="padding:6px 4px;border-bottom:1px solid #f0f3fa;text-align:right;white-space:nowrap;font-weight:600;color:{{ change_color(row.quote) }};">
+                    {{ row.quote.change_percent | change('%') }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+          {% endfor %}
+
+          <tr>
+            <td style="padding:20px 24px;font-size:11px;color:#787b86;">
+              Datos de Yahoo Finance; pueden tener retraso. Variación respecto al cierre anterior.
+              Este informe es solo informativo y no constituye asesoramiento financiero.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

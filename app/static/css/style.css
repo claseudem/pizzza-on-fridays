@@ -510,3 +510,102 @@ a {
     min-height: 60vh;
   }
 }
+
+/* ---- Informes ---- */
+.informes-watchlists {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.informes-watchlists legend {
+  padding: 0 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.informes-watchlists__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.informes-actions {
+  margin-bottom: 12px;
+}
+
+.informes-preview {
+  width: 100%;
+  height: 900px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f0f3fa;
+}
+
+/* ---- Informes: fondos dinámicos ----
+   Los contenedores (.fx-host) crean su propio contexto de apilamiento y la
+   capa (.fx-layer) va en position:absolute con z-index:-1, así que queda
+   detrás del texto sin ocupar espacio en el flujo. Los insets negativos
+   solo agrandan el fondo hacia fuera: el contenido no se mueve. */
+.fx-host {
+  position: relative;
+  isolation: isolate;
+}
+
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 8px;
+  pointer-events: none;
+  background: var(--bg-panel);
+}
+
+.fx-host--header > .fx-layer {
+  inset: -0.75rem -0.6rem -0.6rem;
+}
+
+.fx-host--row > .fx-layer {
+  inset: -0.5rem -0.6rem;
+}
+
+.fx-layer__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlay de contraste: más opaco donde está el texto (izquierda) para que
+   títulos, etiquetas y campos sigan siendo legibles sobre la animación. */
+.fx-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(13, 17, 23, 0.82) 0%, rgba(13, 17, 23, 0.5) 45%, rgba(13, 17, 23, 0.22) 100%);
+}
+
+.fx-layer--stats::after {
+  background: rgba(13, 17, 23, 0.55);
+}
+
+/* En la fila de "Ver informe" el botón queda a la izquierda: se oscurece
+   esa zona y se deja la pista más visible a la derecha. */
+.fx-layer--sports::after {
+  background: linear-gradient(90deg, rgba(13, 17, 23, 0.88) 0%, rgba(13, 17, 23, 0.6) 25%, rgba(13, 17, 23, 0.3) 100%);
+}
+
+/* Videos e imágenes son fotografía real, con más brillo y detalle que el
+   canvas: el overlay es más opaco para que el texto mantenga el contraste. */
+.fx-layer--photo::after {
+  background: linear-gradient(90deg, rgba(13, 17, 23, 0.9) 0%, rgba(13, 17, 23, 0.72) 40%, rgba(13, 17, 23, 0.5) 100%);
+}

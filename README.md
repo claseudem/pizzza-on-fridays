@@ -20,6 +20,8 @@ app/
     watchlists.py            # Registro de watchlists de la app "Gráficas"
     market_data.py            # Descarga + caché de precios/velas (yfinance)
     analysis.py                # Volatilidad mensual + histogramas (seaborn)
+    report.py                   # Informe HTML de cotizaciones para enviar por email
+    media.py                     # Imágenes optimizadas vía Cloudinary (f_auto,q_auto)
     quant.py                    # Métricas quantstats, drawdown, heatmap y earnings
   controllers/            # CONTROLLER: blueprints de Flask
     home.py                   # "/" -> redirige a la app por defecto
@@ -95,6 +97,42 @@ muestra, por cada uno, un histograma con la distribución de esas
 volatilidades a lo largo del período elegido. El histograma se genera en
 el servidor con **seaborn/matplotlib** (`app/models/analysis.py`) y se
 sirve como PNG desde `GET /api/volatility-chart?tickers=AAPL,MSFT&period=5y`.
+
+### Informe de mercado por email
+
+`app/models/report.py` obtiene las cotizaciones de las watchlists, construye
+un informe HTML (resumen de subidas/bajadas, mayores movimientos y una tabla
+por watchlist) con la plantilla `app/views/emails/market_report.html` y lo
+envía vía Resend:
+
+```python
+from app.models.report import build_market_report, send_market_report
+
+report = build_market_report(["overview"])   # .subject y .html listos para enviar
+send_market_report("destino@ejemplo.com")      # todas las watchlists
+```
+
+También por HTTP: `GET /api/report/preview?watchlists=overview` para verlo
+en el navegador y `POST /api/email/send-assets-report` con
+`{"to": "destino@ejemplo.com", "watchlists": ["overview"]}` para enviarlo
+(`watchlists` es opcional).
+
+Desde la app, el apartado **📨 Informes** (`/informes/`) permite elegir las
+watchlists, ver el informe con "Ver informe" y enviarlo con "Enviar por correo".
+
+### Imágenes con Cloudinary
+
+Los fondos de la página de Informes llevan una imagen servida desde
+[Cloudinary](https://cloudinary.com) con `f_auto,q_auto` (AVIF/WebP/JPEG y
+calidad elegidos por Cloudinary para cada navegador) y un `srcset` de 640,
+1280 y 1920 px. La lógica vive en `app/models/media.py`.
+
+1. Copia tu URL de API desde la [consola de Cloudinary](https://console.cloudinary.com/settings/api-keys)
+   y ponla en el `.env`: `CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>`.
+2. Sube las imágenes (una sola vez, o cada vez que cambies las de
+   `app/static/img/informes/`): `uv run flask --app run cloudinary-upload`.
+
+Sin `CLOUDINARY_URL`, la página usa las copias locales de `app/static/img/informes/`.
 
 ### Análisis UEC
 

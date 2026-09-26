@@ -77,6 +77,105 @@ def test_api_volatility_chart_returns_png(client, monkeypatch):
     assert response.data == b"fake-png-bytes"
 
 
+def test_api_email_send_requires_to(client):
+    response = client.post("/api/email/send", json={})
+    assert response.status_code == 400
+
+
+def test_api_email_send_returns_id(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.controllers.api.send_email",
+        lambda to, subject, html: "email-123",
+    )
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 200
+    assert response.get_json() == {"id": "email-123"}
+
+
+def test_api_email_send_reports_provider_errors(client, monkeypatch):
+    from app.models.email import EmailError
+
+    def _raise(to, subject, html):
+        raise EmailError("Falta RESEND_API_KEY en el .env")
+
+    monkeypatch.setattr("app.controllers.api.send_email", _raise)
+    response = client.post("/api/email/send", json={"to": "test@example.com"})
+    assert response.status_code == 502
+    assert "error" in response.get_json()
+
+
+def test_api_report_preview_returns_html(client, monkeypatch):
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    response = client.get("/api/report/preview?watchlists=overview")
+    assert response.status_code == 200
+    assert response.mimetype == "text/html"
+    assert b"Informe de mercado" in response.data
+
+
+def test_api_report_preview_unknown_watchlist_is_404(client):
+    assert client.get("/api/report/preview?watchlists=no-existe").status_code == 404
+
+
+def test_api_report_send_requires_to(client):
+    assert client.post("/api/report/send", json={}).status_code == 400
+
+
+def test_api_report_send_returns_id(client, monkeypatch):
+    calls = []
+
+    def _send(to, slugs):
+        calls.append((to, slugs))
+        return "email-456"
+
+    monkeypatch.setattr("app.controllers.api.report.send_market_report", _send)
+    response = client.post("/api/report/send", json={"to": "test@example.com", "watchlists": ["overview"]})
+    assert response.status_code == 200
+    assert response.get_json() == {"id": "email-456"}
+    assert calls == [("test@example.com", ["overview"])]
+
+
+def test_api_send_assets_report_requires_to(client):
+    assert client.post("/api/email/send-assets-report", json={}).status_code == 400
+
+
+def test_api_send_assets_report_unknown_watchlist_is_404(client):
+    response = client.post(
+        "/api/email/send-assets-report", json={"to": "test@example.com", "watchlists": ["no-existe"]}
+    )
+    assert response.status_code == 404
+
+
+def test_api_send_assets_report_sends_report_html(client, monkeypatch):
+    sent = {}
+
+    def _send(to, subject, html):
+        sent.update(to=to, subject=subject, html=html)
+        return "email-789"
+
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    monkeypatch.setattr("app.controllers.api.send_email", _send)
+    response = client.post(
+        "/api/email/send-assets-report", json={"to": "test@example.com", "watchlists": ["overview"]}
+    )
+    assert response.status_code == 200
+    assert response.get_json()["id"] == "email-789"
+    assert sent["to"] == "test@example.com"
+    assert sent["subject"].startswith("Informe de mercado")
+    assert "Resumen" in sent["html"]
+
+
+def test_api_send_assets_report_reports_provider_errors(client, monkeypatch):
+    from app.models.email import EmailError
+
+    def _raise(to, subject, html):
+        raise EmailError("Falta RESEND_API_KEY en el .env")
+
+    monkeypatch.setattr("app.models.report.market_data.get_quote", _fake_quote)
+    monkeypatch.setattr("app.controllers.api.send_email", _raise)
+    response = client.post("/api/email/send-assets-report", json={"to": "test@example.com"})
+    assert response.status_code == 502
+    assert "error" in response.get_json()
+
 def test_uec_page_shows_metrics_and_earnings(client, monkeypatch):
     from tests.test_quant import _fake_candles, _fake_earnings
 
@@ -117,3 +216,43 @@ def test_api_quant_drawdown_returns_png(client, monkeypatch):
     response = client.get("/api/quant/uec/drawdown.png")
     assert response.status_code == 200
     assert response.mimetype == "image/png"
+
+
+def test_informes_page_has_preview_and_send_buttons(client):
+    response = client.get("/informes/")
+    assert response.status_code == 200
+    assert b'id="preview-btn"' in response.data
+    assert b'id="send-btn"' in response.data
+    for watchlist in WATCHLISTS:
+        assert f'value="{watchlist.slug}"'.encode() in response.data
+
+
+def test_informes_page_has_background_fx_layers(client):
+    response = client.get("/informes/")
+    for scene in ("charts", "stats", "sports"):
+        # Video en bucle si existe static/video/informes-<escena>.mp4; si no, canvas.
+        assert f"fx-layer--{scene}".encode() in response.data
+        assert (
+            f"video/informes-{scene}.mp4".encode() in response.data
+            or f'data-fx-scene="{scene}"'.encode() in response.data
+        )
+    assert b'aria-hidden="true"' in response.data
+
+
+def test_informes_page_uses_local_images_without_cloudinary(client, monkeypatch):
+    from config import Config
+
+    monkeypatch.setattr(Config, "CLOUDINARY_URL", "")
+    response = client.get("/informes/")
+    assert b"/static/img/informes/charts.jpg" in response.data
+    assert b"res.cloudinary.com" not in response.data
+
+
+def test_informes_page_uses_cloudinary_images_when_configured(client, monkeypatch):
+    from config import Config
+
+    monkeypatch.setattr(Config, "CLOUDINARY_URL", "cloudinary://123456:secreto@demo")
+    response = client.get("/informes/")
+    assert b"https://res.cloudinary.com/demo/image/upload/" in response.data
+    assert b"f_auto" in response.data and b"q_auto" in response.data
+    assert b"srcset=" in response.data
