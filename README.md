@@ -21,15 +21,18 @@ app/
     market_data.py            # Descarga + caché de precios/velas (yfinance)
     analysis.py                # Volatilidad mensual + histogramas (seaborn)
     report.py                   # Informe HTML de cotizaciones para enviar por email
+    quant.py                    # Métricas quantstats, drawdown, heatmap y earnings
   controllers/            # CONTROLLER: blueprints de Flask
     home.py                   # "/" -> redirige a la app por defecto
     graficas.py                # App "Gráficas": sidebar de watchlists + gráfico
     varianza.py                 # App "Análisis de Varianza" (placeholder)
+    uec.py                       # App "Análisis UEC" (quantstats)
     api.py                       # API JSON que consume el JavaScript
   views/                   # VIEW: plantillas Jinja2
     base.html                 # Layout con el sidebar
     dashboard.html             # Cabecera + toolbar + contenedor del gráfico
     varianza.html               # Página en blanco de Análisis de Varianza
+    uec.html                     # Métricas, gráficas y earnings de UEC
     partials/sidebar.html
   static/
     css/style.css
@@ -112,6 +115,28 @@ También por HTTP: `GET /api/report/preview?watchlists=overview` para verlo
 en el navegador y `POST /api/email/send-assets-report` con
 `{"to": "destino@ejemplo.com", "watchlists": ["overview"]}` para enviarlo
 (`watchlists` es opcional).
+
+Desde la app, el apartado **📨 Informes** (`/informes/`) permite elegir las
+watchlists, ver el informe con "Ver informe" y enviarlo con "Enviar por correo".
+
+### Análisis UEC
+
+Sección dedicada a **Uranium Energy Corp (UEC)** en `/analisis-uec/`,
+construida con [quantstats](https://github.com/ranaroussi/quantstats)
+sobre los retornos diarios del período elegido (1, 2 o 5 años, o todo):
+
+- **Métricas**: retorno acumulado, volatilidad anualizada, Sharpe, Sortino
+  (tasa libre de riesgo 0, 252 sesiones) y máximo drawdown.
+- **Drawdown** desde máximos y **heatmap de retornos mensuales**.
+- **Últimos 4 earnings**: EPS estimado vs. reportado (con la sorpresa) y la
+  distancia entre un reporte y el siguiente: días, variación del EPS y
+  variación del precio de cierre, en gráfica y en tabla.
+
+La lógica vive en `app/models/quant.py`, que no depende de UEC: las
+gráficas se sirven para cualquier ticker desde
+`GET /api/quant/<ticker>/drawdown.png?period=2y`,
+`GET /api/quant/<ticker>/monthly-heatmap.png?period=2y` y
+`GET /api/quant/<ticker>/earnings.png?count=4`.
 
 ## Puesta en marcha
 

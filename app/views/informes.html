@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Informes · Market Dashboard{% endblock %}
+
+{% block content %}
+<div class="varianza-page informes-page" id="informes-page">
+  <header class="varianza-header">
+    <h1>Informe de activos</h1>
+    <p class="varianza-header__hint">
+      Elige las watchlists, revisa el informe y envíalo por correo.
+    </p>
+  </header>
+
+  <fieldset class="informes-watchlists">
+    <legend>Watchlists incluidas</legend>
+    {% for watchlist in watchlists %}
+    <label class="informes-watchlists__item">
+      <input type="checkbox" name="watchlists" value="{{ watchlist.slug }}" checked>
+      {{ watchlist.icon }} {{ watchlist.name }}
+    </label>
+    {% endfor %}
+  </fieldset>
+
+  <div class="varianza-form informes-actions">
+    <button type="button" class="varianza-form__btn varianza-form__btn--secondary" id="preview-btn">
+      Ver informe
+    </button>
+  </div>
+
+  <form class="varianza-form informes-actions" id="send-form">
+    <input
+      type="email"
+      id="email-input"
+      class="varianza-form__input"
+      placeholder="destino@ejemplo.com"
+      autocomplete="email"
+      required
+    >
+    <button type="submit" class="varianza-form__btn" id="send-btn">Enviar por correo</button>
+  </form>
+
+  <p class="varianza-status" id="informes-status" hidden></p>
+
+  <iframe class="informes-preview" id="informes-preview" title="Vista previa del informe" hidden></iframe>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/informes.js') }}"></script>
+{% endblock %}
