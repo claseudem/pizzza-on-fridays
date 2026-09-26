@@ -6,7 +6,7 @@
     así que no altera la maquetación. Usa un video en bucle si existe y, si no,
     una animación en canvas (ver static/js/informes-fx.js). -#}
 {% macro fx_layer(scene) -%}
-<div class="fx-layer fx-layer--{{ scene }}" aria-hidden="true">
+<div class="fx-layer fx-layer--{{ scene }}{% if fx_videos[scene] %} fx-layer--video{% endif %}" aria-hidden="true">
   {%- if fx_videos[scene] %}
   <video class="fx-layer__media" autoplay muted loop playsinline preload="auto" disablepictureinpicture>
     <source src="{{ fx_videos[scene] }}" type="video/mp4">

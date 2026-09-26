@@ -604,6 +604,12 @@ a {
   background: linear-gradient(90deg, rgba(13, 17, 23, 0.88) 0%, rgba(13, 17, 23, 0.6) 25%, rgba(13, 17, 23, 0.3) 100%);
 }
 
+/* Los videos son fotografía real, con más brillo y detalle que el canvas:
+   el overlay es más opaco para que el texto mantenga el contraste. */
+.fx-layer--video::after {
+  background: linear-gradient(90deg, rgba(13, 17, 23, 0.9) 0%, rgba(13, 17, 23, 0.72) 40%, rgba(13, 17, 23, 0.5) 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fx-layer video {
     display: none;

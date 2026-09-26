@@ -230,5 +230,10 @@ def test_informes_page_has_preview_and_send_buttons(client):
 def test_informes_page_has_background_fx_layers(client):
     response = client.get("/informes/")
     for scene in ("charts", "stats", "sports"):
-        assert f'data-fx-scene="{scene}"'.encode() in response.data
+        # Video en bucle si existe static/video/informes-<escena>.mp4; si no, canvas.
+        assert f"fx-layer--{scene}".encode() in response.data
+        assert (
+            f"video/informes-{scene}.mp4".encode() in response.data
+            or f'data-fx-scene="{scene}"'.encode() in response.data
+        )
     assert b'aria-hidden="true"' in response.data
